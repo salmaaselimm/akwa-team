@@ -80,6 +80,39 @@ const useMockData = () => {
       status: 'Pending',
     },
   ]);
+ 
+const [internships, setInternships] = useState([
+  {
+    id: 1,
+    studentId: 1, // Ali Saied
+    title: "Software Engineer Intern",
+    company: "Vodafone",
+    startDate: "2024-06-01",
+    endDate: "2024-08-01",
+    status: "completed",
+    skills: ["JavaScript", "React", "Node.js"]
+  },
+  {
+    id: 2,
+    studentId: 2, // Abubakr Khaled
+    title: "Network Engineer Intern",
+    company: "Orange",
+    startDate: "2023-06-01",
+    endDate: "2023-08-31",
+    status: "completed",
+    skills: ["Networking", "TCP/IP", "Linux"]
+  },
+  {
+    id: 3,
+    studentId: 1, // Ali Saied (current)
+    title: "AI Research Intern",
+    company: "Google",
+    startDate: "2025-05-15",
+    endDate: "", // Ongoing
+    status: "current",
+    skills: ["Python", "Machine Learning", "TensorFlow"]
+  }
+]);
 
   const [students, setStudents] = useState([
     {
@@ -1617,17 +1650,115 @@ const ScadDashboard = ({ applications, setApplications, students, reports, evalu
   );
 };
 
-// Dashboard Components (Placeholders)
-const StudentDashboard = () => (
-  <Box sx={{ mt: 4, p: 3 }}>
-    <Typography variant="h4" sx={{ color: '#FFFFFF' }}>
-      Student Dashboard
-    </Typography>
-    <Typography sx={{ color: '#B0BEC5', mt: 2 }}>
-      Welcome, Student! Explore internships and opportunities here.
-    </Typography>
-  </Box>
-);
+const StudentDashboard = () => {
+  const { internships } = useMockData();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useNavigate();
+
+  // Get current student ID from auth (mock for now)
+  const currentStudentId = 1; // In real app, get from auth context
+
+  const filteredInternships = internships
+    .filter(internship => internship.studentId === currentStudentId)
+    .filter(internship => {
+      // Search filter
+      const matchesSearch = searchTerm === '' || 
+        internship.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        internship.company.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || 
+        internship.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+
+  return (
+    <Box sx={{ mt: 4, p: 3 }}>
+      <Typography variant="h4" sx={{ color: '#FFFFFF' }}>
+        My Internships
+      </Typography>
+      
+      {/* Search and Filter Controls */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, mt: 2 }}>
+        <TextField
+          label="Search by job title or company"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{ 
+            flexGrow: 1,
+            '& .MuiInputBase-root': { color: '#FFFFFF' },
+            '& .MuiInputLabel-root': { color: '#B0BEC5' }
+          }}
+        />
+        
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ color: '#B0BEC5' }}>Filter by status</InputLabel>
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            sx={{ color: '#FFFFFF' }}
+          >
+            <MenuItem value="all">All Internships</MenuItem>
+            <MenuItem value="current">Current Internship</MenuItem>
+            <MenuItem value="completed">Completed Internships</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Internships List */}
+      {filteredInternships.length > 0 ? (
+        <Box sx={{ backgroundColor: '#2D2D2D', borderRadius: 2, p: 2 }}>
+          {filteredInternships.map((internship) => (
+            <Box 
+              key={internship.id}
+              sx={{
+                p: 2,
+                mb: 2,
+                border: '1px solid #3D3D3D',
+                borderRadius: 1,
+                '&:hover': { borderColor: '#C6FF00' }
+              }}
+            >
+              <Typography variant="h6" sx={{ color: '#C6FF00' }}>
+                {internship.title} at {internship.company}
+              </Typography>
+              <Typography sx={{ color: '#B0BEC5', mt: 1 }}>
+                {internship.startDate} to {internship.status === 'current' ? 'Present' : internship.endDate}
+              </Typography>
+              <Typography sx={{ color: '#FFFFFF', mt: 1 }}>
+                Status: {internship.status === 'current' ? 'Current Intern' : 'Completed'}
+              </Typography>
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2" sx={{ color: '#B0BEC5' }}>
+                  Skills: {internship.skills.join(', ')}
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                sx={{
+                  color: '#C6FF00',
+                  borderColor: '#C6FF00',
+                  mt: 2,
+                  '&:hover': { borderColor: '#AEEA00' }
+                }}
+                onClick={() => navigate(`/internship-details/${internship.id}`)}
+              >
+                View Details
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Typography sx={{ color: '#B0BEC5', mt: 2 }}>
+          No internships found matching your criteria
+        </Typography>
+      )}
+    </Box>
+  );
+};
 
 const ProStudentDashboard = () => (
   <Box sx={{ mt: 4, p: 3 }}>
@@ -1684,6 +1815,7 @@ function App() {
               <Route path="/appointments" element={<Typography sx={{ color: '#FFFFFF' }}>Appointments Page</Typography>} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/register-company" element={<RegisterCompany setApplications={setApplications} />} />
+
               <Route path="/student-dashboard" element={<StudentDashboard />} />
               <Route path="/pro-student-dashboard" element={<ProStudentDashboard />} />
               <Route path="/company-dashboard" element={<CompanyDashboard />} />
