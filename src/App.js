@@ -38,6 +38,51 @@ const theme = createTheme({
 
 // Mock data storage for company applications, students, reports, evaluation reports, appointments, and internship cycle
 const useMockData = () => {
+  
+const [availableInternships, setAvailableInternships] = useState([
+  {
+    id: 1,
+    company: "Vodafone",
+    title: "Software Engineering Intern",
+    industry: "Telecommunications",
+    duration: "3 months",
+    isPaid: true,
+    salary: "5000 EGP/month",
+    skills: ["JavaScript", "React", "Node.js"],
+    description: "Work on front-end development of customer portal...",
+    startDate: "2025-06-01",
+    endDate: "2025-08-31",
+    applicationDeadline: "2025-05-20"
+  },
+  {
+    id: 2,
+    company: "CIB",
+    title: "Data Analyst Intern",
+    industry: "Banking",
+    duration: "2 months",
+    isPaid: false,
+    salary: null,
+    skills: ["Python", "SQL", "Data Visualization"],
+    description: "Analyze customer transaction patterns...",
+    startDate: "2025-07-01",
+    endDate: "2025-08-31",
+    applicationDeadline: "2025-06-15"
+  },
+  {
+    id: 3,
+    company: "Orange",
+    title: "Network Engineer Intern",
+    industry: "Telecommunications",
+    duration: "3 months",
+    isPaid: true,
+    salary: "4500 EGP/month",
+    skills: ["Networking", "TCP/IP", "Linux"],
+    description: "Assist in network infrastructure maintenance...",
+    startDate: "2025-06-15",
+    endDate: "2025-09-15",
+    applicationDeadline: "2025-06-01"
+  }
+]);
   const [applications, setApplications] = useState([
     {
       id: 1,
@@ -1649,6 +1694,234 @@ const ScadDashboard = ({ applications, setApplications, students, reports, evalu
     </Box>
   );
 };
+const InternshipsPage = () => {
+  const { availableInternships } = useMockData();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    industry: '',
+    duration: '',
+    isPaid: ''
+  });
+  const [selectedInternship, setSelectedInternship] = useState(null);
+  const navigate = useNavigate();
+
+  const filteredInternships = availableInternships.filter(internship => {
+    // Search filter
+    const matchesSearch = searchTerm === '' || 
+      internship.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      internship.company.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Industry filter
+    const matchesIndustry = filters.industry === '' || 
+      internship.industry === filters.industry;
+    
+    // Duration filter
+    const matchesDuration = filters.duration === '' || 
+      internship.duration.includes(filters.duration);
+    
+    // Paid filter
+    const matchesPaid = filters.isPaid === '' || 
+      (filters.isPaid === 'paid' && internship.isPaid) || 
+      (filters.isPaid === 'unpaid' && !internship.isPaid);
+    
+    return matchesSearch && matchesIndustry && matchesDuration && matchesPaid;
+  });
+
+  const industries = [...new Set(availableInternships.map(i => i.industry))];
+  const durations = [...new Set(availableInternships.map(i => i.duration))];
+
+  return (
+    <Box sx={{ mt: 4, p: 3 }}>
+      <Typography variant="h4" sx={{ color: '#FFFFFF' }}>
+        Available Internships
+      </Typography>
+      
+      {/* Search and Filter Controls */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, mt: 2 }}>
+        <TextField
+          label="Search by job title or company"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{ 
+            flexGrow: 1,
+            minWidth: 300,
+            '& .MuiInputBase-root': { color: '#FFFFFF' },
+            '& .MuiInputLabel-root': { color: '#B0BEC5' }
+          }}
+        />
+        
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ color: '#B0BEC5' }}>Industry</InputLabel>
+          <Select
+            value={filters.industry}
+            onChange={(e) => setFilters({...filters, industry: e.target.value})}
+            sx={{ color: '#FFFFFF' }}
+          >
+            <MenuItem value="">All Industries</MenuItem>
+            {industries.map(industry => (
+              <MenuItem key={industry} value={industry}>{industry}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ color: '#B0BEC5' }}>Duration</InputLabel>
+          <Select
+            value={filters.duration}
+            onChange={(e) => setFilters({...filters, duration: e.target.value})}
+            sx={{ color: '#FFFFFF' }}
+          >
+            <MenuItem value="">Any Duration</MenuItem>
+            {durations.map(duration => (
+              <MenuItem key={duration} value={duration}>{duration}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ color: '#B0BEC5' }}>Payment</InputLabel>
+          <Select
+            value={filters.isPaid}
+            onChange={(e) => setFilters({...filters, isPaid: e.target.value})}
+            sx={{ color: '#FFFFFF' }}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="paid">Paid Only</MenuItem>
+            <MenuItem value="unpaid">Unpaid Only</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Internships List */}
+      {filteredInternships.length > 0 ? (
+        <Table sx={{ backgroundColor: '#2D2D2D', mb: 4 }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ color: '#C6FF00' }}>Company</TableCell>
+              <TableCell sx={{ color: '#C6FF00' }}>Job Title</TableCell>
+              <TableCell sx={{ color: '#C6FF00' }}>Duration</TableCell>
+              <TableCell sx={{ color: '#C6FF00' }}>Paid</TableCell>
+              <TableCell sx={{ color: '#C6FF00' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredInternships.map((internship) => (
+              <TableRow key={internship.id}>
+                <TableCell sx={{ color: '#FFFFFF' }}>{internship.company}</TableCell>
+                <TableCell sx={{ color: '#FFFFFF' }}>{internship.title}</TableCell>
+                <TableCell sx={{ color: '#FFFFFF' }}>{internship.duration}</TableCell>
+                <TableCell sx={{ color: '#FFFFFF' }}>
+                  {internship.isPaid ? 'Yes' : 'No'}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      backgroundColor: '#C6FF00',
+                      color: '#1A1A1A',
+                      '&:hover': { backgroundColor: '#AEEA00' },
+                    }}
+                    onClick={() => setSelectedInternship(internship)}
+                  >
+                    View Details
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Typography sx={{ color: '#B0BEC5', mt: 2 }}>
+          No internships found matching your criteria
+        </Typography>
+      )}
+
+      {/* Internship Details Modal */}
+      {selectedInternship && (
+        <Modal open onClose={() => setSelectedInternship(null)}>
+          <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 600,
+            bgcolor: '#2D2D2D',
+            border: '1px solid #C6FF00',
+            p: 4,
+            color: '#FFFFFF',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}>
+            <Typography variant="h5" sx={{ color: '#C6FF00', mb: 2 }}>
+              {selectedInternship.title} at {selectedInternship.company}
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+              <Typography><strong>Industry:</strong> {selectedInternship.industry}</Typography>
+              <Typography><strong>Duration:</strong> {selectedInternship.duration}</Typography>
+              <Typography><strong>Payment:</strong> {selectedInternship.isPaid ? 
+                `Yes (${selectedInternship.salary})` : 'No'}</Typography>
+            </Box>
+            
+            <Typography sx={{ mt: 2 }}><strong>Start Date:</strong> {selectedInternship.startDate}</Typography>
+            <Typography><strong>End Date:</strong> {selectedInternship.endDate}</Typography>
+            <Typography><strong>Application Deadline:</strong> {selectedInternship.applicationDeadline}</Typography>
+            
+            <Typography sx={{ mt: 2 }}><strong>Skills Required:</strong></Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {selectedInternship.skills.map(skill => (
+                <Box key={skill} sx={{
+                  backgroundColor: '#3D3D3D',
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1,
+                  color: '#FFFFFF'
+                }}>
+                  {skill}
+                </Box>
+              ))}
+            </Box>
+            
+            <Typography sx={{ mt: 2 }}><strong>Job Description:</strong></Typography>
+            <Typography sx={{ whiteSpace: 'pre-wrap', mt: 1 }}>
+              {selectedInternship.description}
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: '#C6FF00',
+                  color: '#1A1A1A',
+                  '&:hover': { backgroundColor: '#AEEA00' },
+                  mr: 2
+                }}
+                onClick={() => {
+                  // In a real app, this would navigate to application form
+                  alert(`Applying to ${selectedInternship.title}`);
+                }}
+              >
+                Apply Now
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{
+                  color: '#C6FF00',
+                  borderColor: '#C6FF00',
+                  '&:hover': { borderColor: '#AEEA00' }
+                }}
+                onClick={() => setSelectedInternship(null)}
+              >
+                Close
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+      )}
+    </Box>
+  );
+};
 
 const StudentDashboard = () => {
   const { internships } = useMockData();
@@ -1806,16 +2079,18 @@ function App() {
           <Sidebar />
           <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
             <Routes>
+              <Route path="/internship-details/:id" element={<InternshipDetailsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
               <Route path="/companies" element={<Typography sx={{ color: '#FFFFFF' }}>Companies Page</Typography>} />
-              <Route path="/internships" element={<Typography sx={{ color: '#FFFFFF' }}>Internships Page</Typography>} />
               <Route path="/students" element={<Typography sx={{ color: '#FFFFFF' }}>Students Page</Typography>} />
               <Route path="/reports" element={<Typography sx={{ color: '#FFFFFF' }}>Reports Page</Typography>} />
               <Route path="/appointments" element={<Typography sx={{ color: '#FFFFFF' }}>Appointments Page</Typography>} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/register-company" element={<RegisterCompany setApplications={setApplications} />} />
-
+              <Route path="/internships" element={<InternshipsPage />} />
               <Route path="/student-dashboard" element={<StudentDashboard />} />
               <Route path="/pro-student-dashboard" element={<ProStudentDashboard />} />
               <Route path="/company-dashboard" element={<CompanyDashboard />} />
